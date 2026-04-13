@@ -1,0 +1,33 @@
+{
+  "餐饮": {
+    "main_cat": "餐饮",
+    "sub_cat": "综合",
+    "is_essential": 1,
+    "keywords": ["美团", "华林", "鹏华","武汉大学"]
+  },
+  "交通": {
+    "main_cat": "交通",
+    "sub_cat": "共享单车",
+    "is_essential": 1,
+    "keywords": ["芒果电单车","湖北知音动漫"]
+  },
+  "网购": {
+    "main_cat": "网购",
+    "sub_cat": "网购",
+    "is_essential": 0,
+    "keywords": ["抖音电商","淘宝","京东","得物","闲鱼"]
+  },
+  "娱乐": {
+    "main_cat": "娱乐",
+    "sub_cat": "Apple",
+    "is_essential": 0,
+    "keywords": ["Apple"]
+  },
+"其他": {
+    "main_cat": "其他",
+    "sub_cat": "其他",
+    "is_essential": 1,
+    "keywords": ["上海众家联设备租赁"]
+  }
+
+}

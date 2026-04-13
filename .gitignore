@@ -1,0 +1,6 @@
+.env
+data/raw/
+data/masked/
+masker/build/
+__pycache__/
+*.pyc

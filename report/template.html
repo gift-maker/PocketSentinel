@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>PocketSentinel 月报</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; background: #f5f5f5; }
+h1 { color: #1F4E79; }
+.chart-box { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+canvas { max-height: 300px; }
+</style>
+</head>
+<body>
+<h1>PocketSentinel 消费月报</h1>
+<p style="color:#888">{{ start_date }} 至 {{ end_date }}</p>
+<div class="chart-box">
+  <h2>分类支出占比</h2>
+  <canvas id="pieChart"></canvas>
+</div>
+
+<div class="chart-box">
+  <h2>每日支出趋势</h2>
+  <canvas id="lineChart"></canvas>
+</div>
+
+<div class="chart-box">
+  <h2>深夜消费分布</h2>
+  <canvas id="barChart"></canvas>
+</div>
+
+<script>
+const categoryLabels = {{ category_labels }};
+const categoryValues = {{ category_values }};
+const dailyLabels = {{ daily_labels }};
+const dailyValues = {{ daily_values }};
+const nightLabels = {{ night_labels }};
+const nightValues = {{ night_values }};
+
+new Chart(document.getElementById('pieChart'), {
+  type: 'pie',
+  data: { labels: categoryLabels, datasets: [{ data: categoryValues }] }
+});
+
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: { labels: dailyLabels, datasets: [{ label: '支出(元)', data: dailyValues, borderColor: '#2E75B6', tension: 0.3 }] }
+});
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: { labels: nightLabels, datasets: [{ label: '支出(元)', data: nightValues, backgroundColor: '#C00000' }] }
+});
+</script>
+</body>
+</html>
