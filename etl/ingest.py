@@ -1,9 +1,10 @@
 #第一步先写读取 xlsx 文件的部分，目标是把账单的46行数据用 Python 读出来，跳过前17行说明文字，只保留第18行以后的真实数据.
 
 # 1. 导入库
-import openpyxl
+
 import decimal
-from pathlib import Path
+import sys
+import csv
 from classifier import classify_by_rules
 from classifier import classify_by_llm
 # 6. 连接数据库
@@ -16,14 +17,12 @@ conn = pymysql.connect(
     database='pocket_sentinel',
     charset='utf8mb4'
 )
-# 2. 定义文件路径
-XLSX_FILE = Path.home() / '微信支付账单流水文件(20260404-20260411)_20260411140900.xlsx'
-
-# 3. 打开 xlsx，获取工作表
-wb=openpyxl.load_workbook(XLSX_FILE)
-ws=wb.active
+CSV_FILE = sys.argv[1]
+with open(CSV_FILE, 'r', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    all_rows = list(reader)
 # 4. 遍历第19行开始的数据，跳过说明行
-for row in ws.iter_rows(min_row=19, values_only=True):
+for row in all_rows[18:]:
 #    每一行的列顺序是：
 #    [0]交易时间 [1]交易类型 [2]交易对方 [3]商品
 #    [4]收/支    [5]金额     [6]支付方式  [7]当前状态
@@ -73,15 +72,23 @@ for row in ws.iter_rows(min_row=19, values_only=True):
              main_cat = classify_by_llm(merchant)
 
           if main_cat:
-           cursor.execute("SELECT category_id FROM dim_categories WHERE main_cat=%s", (main_cat,))
-           cat_row = cursor.fetchone()
-           if cat_row:
-            category_id = cat_row[0]
-            cursor.execute("UPDATE dim_merchants SET category_id=%s WHERE original_name=%s", (category_id, merchant))
-            cursor.execute("UPDATE fact_transactions SET category_id=%s WHERE trans_hash=%s", (category_id, trans_hash))
+             cursor.execute("SELECT category_id FROM dim_categories WHERE main_cat=%s", (main_cat,))
+             cat_row = cursor.fetchone()
+             if cat_row:
+                category_id = cat_row[0]
+             else:
+        # 数据库里没有这个分类，自动插入
+               cursor.execute(
+               "INSERT INTO dim_categories (main_cat, sub_cat, is_essential) VALUES (%s, %s, 0)",
+              (main_cat, main_cat)
+           )
+               category_id = cursor.lastrowid
+    
+             cursor.execute("UPDATE dim_merchants SET category_id=%s WHERE original_name=%s", (category_id, merchant))
+             cursor.execute("UPDATE fact_transactions SET category_id=%s WHERE trans_hash=%s", (category_id, trans_hash))
 # 8. 打印完成信息：共处理 X 条
 conn.commit()
-print("完成！共处理 {} 条记录。".format(ws.max_row - 18))
+print("完成！共处理 {} 条记录。".format(len(all_rows) - 18))
 
 
 
