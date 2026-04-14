@@ -5,18 +5,57 @@
 <title>PocketSentinel 月报</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; background: #f5f5f5; }
-h1 { color: #1F4E79; }
-.chart-box { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1200px; margin: 40px auto; background: #f5f7fa; padding: 20px; }
+h1 { color: #1F4E79; margin-bottom: 8px; }
+.subtitle { color: #888; font-size: 14px; margin-bottom: 24px; }
+.summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.summary-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #2E75B6; }
+.summary-card.income { border-left-color: #70AD47; }
+.summary-card.expense { border-left-color: #FFC000; }
+.summary-card.balance { border-left-color: #C00000; }
+.summary-card h3 { color: #666; font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; }
+.summary-card .value { font-size: 28px; font-weight: bold; color: #1F4E79; }
+.summary-card.income .value { color: #70AD47; }
+.summary-card.expense .value { color: #FFC000; }
+.summary-card.balance .value { color: #C00000; }
+.chart-box { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.chart-box h2 { margin-top: 0; color: #333; font-size: 16px; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; }
+.charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 24px; }
 canvas { max-height: 300px; }
+@media (max-width: 768px) {
+  .summary { grid-template-columns: 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <h1>PocketSentinel 消费月报</h1>
-<p style="color:#888">2026-01-13 至 2026-04-13</p>
-<div class="chart-box">
-  <h2>分类支出占比</h2>
-  <canvas id="pieChart"></canvas>
+<p class="subtitle">2026-01-13 至 2026-04-13</p>
+
+<div class="summary">
+  <div class="summary-card income">
+    <h3>本期收入</h3>
+    <div class="value">11127.75</div>
+  </div>
+  <div class="summary-card expense">
+    <h3>本期支出</h3>
+    <div class="value">11973.18</div>
+  </div>
+  <div class="summary-card balance">
+    <h3>本期结余</h3>
+    <div class="value">-845.43</div>
+  </div>
+</div>
+
+<div class="charts-grid">
+  <div class="chart-box">
+    <h2>支出分类占比</h2>
+    <canvas id="pieChart"></canvas>
+  </div>
+  <div class="chart-box">
+    <h2>收入分类占比</h2>
+    <canvas id="incomePieChart"></canvas>
+  </div>
 </div>
 
 <div class="chart-box">
@@ -30,26 +69,73 @@ canvas { max-height: 300px; }
 </div>
 
 <script>
-const categoryLabels = ['转账', '其他', '购物', '教育', '还款', '理财', '餐饮', '住宿', '娱乐', '交通'];
-const categoryValues = [4108.0, 2417.63, 1985.45, 1088.09, 800.8, 400.0, 304.28, 108.0, 85.85, 75.08];
+const categoryLabels = ['购物', '其他', '转账', '餐饮', '还款', '理财', '住宿', '交通', '娱乐', '教育'];
+const categoryValues = [3767.04, 3111.9, 2372.0, 1279.51, 800.8, 400.0, 108.0, 70.08, 61.85, 2.0];
 const dailyLabels = ['2026-01-13', '2026-01-14', '2026-01-15', '2026-01-16', '2026-01-17', '2026-01-18', '2026-01-19', '2026-01-21', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-27', '2026-01-28', '2026-01-30', '2026-01-31', '2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04', '2026-02-05', '2026-02-06', '2026-02-07', '2026-02-10', '2026-02-13', '2026-02-14', '2026-02-16', '2026-02-20', '2026-02-21', '2026-02-22', '2026-02-23', '2026-02-24', '2026-02-25', '2026-02-26', '2026-02-27', '2026-02-28', '2026-03-01', '2026-03-02', '2026-03-03', '2026-03-04', '2026-03-05', '2026-03-06', '2026-03-07', '2026-03-08', '2026-03-09', '2026-03-10', '2026-03-11', '2026-03-12', '2026-03-13', '2026-03-14', '2026-03-15', '2026-03-16', '2026-03-17', '2026-03-18', '2026-03-19', '2026-03-20', '2026-03-21', '2026-03-22', '2026-03-23', '2026-03-24', '2026-03-25', '2026-03-26', '2026-03-27', '2026-03-28', '2026-03-29', '2026-03-30', '2026-03-31', '2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06', '2026-04-07', '2026-04-08', '2026-04-09', '2026-04-10', '2026-04-11', '2026-04-12', '2026-04-13'];
 const dailyValues = [73.48, 214.5, 189.7, 352.8, 51.32, 197.28, 26.38, 273.02, 5.4, 368.22, 870.52, 17.68, 400.0, 7.78, 20.0, 68.48, 19.54, 50.0, 23.23, 18.18, 62.1, 47.06, 27.0, 1276.9, 27.4, 90.02, 352.0, 45.23, 725.48, 174.0, 231.33, 58.62, 109.0, 66.0, 39.0, 576.56, 34.12, 43.04, 45.58, 54.17, 61.64, 52.24, 93.78, 292.91, 91.39, 58.37, 56.0, 41.2, 146.74, 94.74, 263.08, 92.35, 42.86, 65.05, 47.17, 528.95, 183.32, 680.8, 67.0, 39.33, 211.53, 543.43, 11.75, 68.81, 33.68, 51.54, 46.44, 49.4, 57.67, 144.03, 41.37, 37.2, 40.1, 42.0, 79.86, 36.87, 40.83, 67.98, 37.65];
 const nightLabels = ['0', '1', '22', '23'];
 const nightValues = [61.88, 2.89, 677.66, 422.58];
+const incomeLabels = ['转账', '其他', '购物', '餐饮', '娱乐'];
+const incomeValues = [8074.57, 2461.58, 374.6, 188.0, 29.0];
 
 new Chart(document.getElementById('pieChart'), {
   type: 'pie',
-  data: { labels: categoryLabels, datasets: [{ data: categoryValues }] }
+  data: {
+    labels: categoryLabels,
+    datasets: [{
+      data: categoryValues,
+      backgroundColor: ['#2E75B6', '#ED7D31', '#A5A5A5', '#FFC000', '#70AD47', '#4472C4', '#FF6B6B']
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: true }
+});
+
+new Chart(document.getElementById('incomePieChart'), {
+  type: 'pie',
+  data: {
+    labels: incomeLabels,
+    datasets: [{
+      data: incomeValues,
+      backgroundColor: ['#70AD47', '#4472C4', '#FFC000', '#FF6B6B', '#00B0F0', '#92D050']
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: true }
 });
 
 new Chart(document.getElementById('lineChart'), {
   type: 'line',
-  data: { labels: dailyLabels, datasets: [{ label: '支出(元)', data: dailyValues, borderColor: '#2E75B6', tension: 0.3 }] }
+  data: {
+    labels: dailyLabels,
+    datasets: [{
+      label: '支出(元)',
+      data: dailyValues,
+      borderColor: '#2E75B6',
+      backgroundColor: 'rgba(46, 117, 182, 0.1)',
+      tension: 0.3,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: true } },
+    scales: { y: { beginAtZero: true } }
+  }
 });
 
 new Chart(document.getElementById('barChart'), {
   type: 'bar',
-  data: { labels: nightLabels, datasets: [{ label: '支出(元)', data: nightValues, backgroundColor: '#C00000' }] }
+  data: {
+    labels: nightLabels,
+    datasets: [{
+      label: '支出(元)',
+      data: nightValues,
+      backgroundColor: '#C00000'
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { beginAtZero: true } }
+  }
 });
 </script>
 </body>

@@ -5,18 +5,57 @@
 <title>PocketSentinel 月报</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; background: #f5f5f5; }
-h1 { color: #1F4E79; }
-.chart-box { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1200px; margin: 40px auto; background: #f5f7fa; padding: 20px; }
+h1 { color: #1F4E79; margin-bottom: 8px; }
+.subtitle { color: #888; font-size: 14px; margin-bottom: 24px; }
+.summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.summary-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #2E75B6; }
+.summary-card.income { border-left-color: #70AD47; }
+.summary-card.expense { border-left-color: #FFC000; }
+.summary-card.balance { border-left-color: #C00000; }
+.summary-card h3 { color: #666; font-size: 12px; margin: 0 0 8px 0; text-transform: uppercase; }
+.summary-card .value { font-size: 28px; font-weight: bold; color: #1F4E79; }
+.summary-card.income .value { color: #70AD47; }
+.summary-card.expense .value { color: #FFC000; }
+.summary-card.balance .value { color: #C00000; }
+.chart-box { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.chart-box h2 { margin-top: 0; color: #333; font-size: 16px; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; }
+.charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 24px; }
 canvas { max-height: 300px; }
+@media (max-width: 768px) {
+  .summary { grid-template-columns: 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <h1>PocketSentinel 消费月报</h1>
-<p style="color:#888">{{ start_date }} 至 {{ end_date }}</p>
-<div class="chart-box">
-  <h2>分类支出占比</h2>
-  <canvas id="pieChart"></canvas>
+<p class="subtitle">{{ start_date }} 至 {{ end_date }}</p>
+
+<div class="summary">
+  <div class="summary-card income">
+    <h3>本期收入</h3>
+    <div class="value">{{ "%.2f"|format(total_income) }}</div>
+  </div>
+  <div class="summary-card expense">
+    <h3>本期支出</h3>
+    <div class="value">{{ "%.2f"|format(total_expense) }}</div>
+  </div>
+  <div class="summary-card balance">
+    <h3>本期结余</h3>
+    <div class="value">{{ "%.2f"|format(total_income - total_expense) }}</div>
+  </div>
+</div>
+
+<div class="charts-grid">
+  <div class="chart-box">
+    <h2>支出分类占比</h2>
+    <canvas id="pieChart"></canvas>
+  </div>
+  <div class="chart-box">
+    <h2>收入分类占比</h2>
+    <canvas id="incomePieChart"></canvas>
+  </div>
 </div>
 
 <div class="chart-box">
@@ -36,20 +75,67 @@ const dailyLabels = {{ daily_labels }};
 const dailyValues = {{ daily_values }};
 const nightLabels = {{ night_labels }};
 const nightValues = {{ night_values }};
+const incomeLabels = {{ income_labels }};
+const incomeValues = {{ income_values }};
 
 new Chart(document.getElementById('pieChart'), {
   type: 'pie',
-  data: { labels: categoryLabels, datasets: [{ data: categoryValues }] }
+  data: {
+    labels: categoryLabels,
+    datasets: [{
+      data: categoryValues,
+      backgroundColor: ['#2E75B6', '#ED7D31', '#A5A5A5', '#FFC000', '#70AD47', '#4472C4', '#FF6B6B']
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: true }
+});
+
+new Chart(document.getElementById('incomePieChart'), {
+  type: 'pie',
+  data: {
+    labels: incomeLabels,
+    datasets: [{
+      data: incomeValues,
+      backgroundColor: ['#70AD47', '#4472C4', '#FFC000', '#FF6B6B', '#00B0F0', '#92D050']
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: true }
 });
 
 new Chart(document.getElementById('lineChart'), {
   type: 'line',
-  data: { labels: dailyLabels, datasets: [{ label: '支出(元)', data: dailyValues, borderColor: '#2E75B6', tension: 0.3 }] }
+  data: {
+    labels: dailyLabels,
+    datasets: [{
+      label: '支出(元)',
+      data: dailyValues,
+      borderColor: '#2E75B6',
+      backgroundColor: 'rgba(46, 117, 182, 0.1)',
+      tension: 0.3,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: true } },
+    scales: { y: { beginAtZero: true } }
+  }
 });
 
 new Chart(document.getElementById('barChart'), {
   type: 'bar',
-  data: { labels: nightLabels, datasets: [{ label: '支出(元)', data: nightValues, backgroundColor: '#C00000' }] }
+  data: {
+    labels: nightLabels,
+    datasets: [{
+      label: '支出(元)',
+      data: nightValues,
+      backgroundColor: '#C00000'
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { beginAtZero: true } }
+  }
 });
 </script>
 </body>

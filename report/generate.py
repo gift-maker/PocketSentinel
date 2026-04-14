@@ -51,6 +51,27 @@ with conn.cursor() as cursor:
     date_range = cursor.fetchone()
     start_date = str(date_range[0])
     end_date = str(date_range[1])
+    cursor.execute("SELECT SUM(amount) FROM fact_transactions WHERE direction = 0")
+    total_income = float(cursor.fetchone()[0] or 0)
+    #收入分类查询
+    cursor.execute("""
+    SELECT  c.main_cat ,SUM(t.amount) AS total
+    FROM fact_transactions t
+    JOIN dim_categories c ON t.category_id = c.category_id
+    WHERE t.direction = 0
+    GROUP BY c.main_cat
+    ORDER BY total DESC
+                
+    """) 
+    income_data = cursor.fetchall()
+    cursor.execute("SELECT SUM(amount) FROM fact_transactions WHERE direction = 1")
+    total_expense = float(cursor.fetchone()[0] or 0)
+
+
+
+
+
+
 # 6. 读取模板，渲染 HTML，写出文件
 # 6. 渲染 HTML，写出文件
 template_path = Path(__file__).parent / 'template.html'
@@ -65,6 +86,10 @@ html = template.render(
     night_values=str([float(row[1]) for row in night_data]),
     start_date=start_date,
     end_date=end_date,
+    income_labels=str([row[0] for row in income_data]),
+    income_values=str([float(row[1]) for row in income_data]),
+    total_income=total_income,
+    total_expense=total_expense,
 )
 
 output_path = Path(__file__).parent / 'report.html'
